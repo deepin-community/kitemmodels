@@ -1,10 +1,15 @@
 add_library(itemmodelsplugin)
 
 target_sources(itemmodelsplugin PRIVATE
-    plugin.cpp
     kconcatenaterowsproxymodel_qml.cpp
+    kconcatenaterowsproxymodel_qml.h
     kdescendantsproxymodel_qml.cpp
+    kdescendantsproxymodel_qml.h
     ksortfilterproxymodel.cpp
+    ksortfilterproxymodel.h
+    plugin.cpp
+    plugin.h
+    qmldeprecated.h
 )
 
 if(NOT BUILD_SHARED_LIBS)
@@ -31,7 +36,7 @@ ecm_qt_declare_logging_category(itemmodelsplugin
 )
 
 target_link_libraries(itemmodelsplugin
-        Qt5::Qml
+        Qt${QT_MAJOR_VERSION}::Qml
         KF5::ItemModels
 )
 
