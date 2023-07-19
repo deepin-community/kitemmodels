@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(KF_VERSION "5.90.0") # handled by release scripts
+set(KF_VERSION "5.103.0") # handled by release scripts
 project(KItemModels VERSION ${KF_VERSION})
 
 include(FeatureSummary)
-find_package(ECM 5.90.0  NO_MODULE)
+find_package(ECM 5.103.0  NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://commits.kde.org/extra-cmake-modules")
 feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
@@ -12,24 +12,28 @@ feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKA
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
 include(KDEInstallDirs)
-include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
 include(KDECMakeSettings)
+include(KDEFrameworkCompilerSettings NO_POLICY_SCOPE)
+
 include(KDEGitCommitHooks)
 include(ECMQtDeclareLoggingCategory)
+include(ECMSetupVersion)
+include(ECMGenerateHeaders)
+include(ECMGenerateExportHeader)
+include(ECMDeprecationSettings)
+include(ECMAddQch)
+include(CMakePackageConfigHelpers)
+include(ECMQmlModule)
 
 set(REQUIRED_QT_VERSION 5.15.2)
 find_package(Qt${QT_MAJOR_VERSION}Core ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
 find_package(Qt${QT_MAJOR_VERSION}Qml ${REQUIRED_QT_VERSION} NO_MODULE)
 
-include(ECMGenerateExportHeader)
 set_package_properties(Qt${QT_MAJOR_VERSION}Qml PROPERTIES
         TYPE OPTIONAL
         PURPOSE "Build QML import for KItemModels"
 )
 
-include(ECMSetupVersion)
-include(ECMGenerateHeaders)
-include(ECMAddQch)
 
 set(EXCLUDE_DEPRECATED_BEFORE_AND_AT 0 CACHE STRING "Control the range of deprecated API excluded from the build [default=0].")
 
@@ -41,9 +45,23 @@ ecm_setup_version(PROJECT VARIABLE_PREFIX KITEMMODELS
                         PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/KF5ItemModelsConfigVersion.cmake"
                         SOVERSION 5)
 
-add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050f02)
+ecm_set_disabled_deprecation_versions(
+    QT 5.15.2
+)
+
 add_subdirectory(src)
 if (BUILD_TESTING)
+    find_package(Qt${QT_MAJOR_VERSION} ${REQUIRED_QT_VERSION} CONFIG REQUIRED Test Widgets)
+    find_package(Qt${QT_MAJOR_VERSION}QuickWidgets ${REQUIRED_QT_VERSION} NO_MODULE)
+    set_package_properties(Qt${QT_MAJOR_VERSION}QuickWidgets PROPERTIES
+        TYPE OPTIONAL
+        PURPOSE "Build proxymodeltestapp QML selection and QML treeview examples"
+    )
+    set_package_properties(Qt${QT_MAJOR_VERSION}Script PROPERTIES
+        TYPE OPTIONAL
+        PURPOSE "Build proxymodeltestapp reparenting example"
+    )
+    find_package(Qt${QT_MAJOR_VERSION}Script ${REQUIRED_QT_VERSION} NO_MODULE)
     add_subdirectory(autotests)
     add_subdirectory(tests)
 endif()
@@ -60,8 +78,6 @@ if (BUILD_QCH)
     )
     set(PACKAGE_INCLUDE_QCHTARGETS "include(\"\${CMAKE_CURRENT_LIST_DIR}/KF5ItemModelsQCHTargets.cmake\")")
 endif()
-
-include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/KF5ItemModelsConfig.cmake.in"
@@ -80,7 +96,7 @@ install(EXPORT KF5ItemModelsTargets DESTINATION "${CMAKECONFIG_INSTALL_DIR}" FIL
 
 install(FILES
    ${CMAKE_CURRENT_BINARY_DIR}/kitemmodels_version.h
-  DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF} COMPONENT Devel
+  DESTINATION ${KDE_INSTALL_INCLUDEDIR_KF}/KItemModels COMPONENT Devel
 )
 
 feature_summary(WHAT ALL   FATAL_ON_MISSING_REQUIRED_PACKAGES)
